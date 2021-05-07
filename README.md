@@ -1,4 +1,4 @@
-# mori
+# L2
 
 ## Project setup
 ```
