@@ -253,6 +253,8 @@ export default {
     temp: {},
     files: [],
     nums: ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10'],
+    results: [],
+    submit: {},
   }),
 
   computed: {
@@ -280,6 +282,7 @@ export default {
   mounted() {
     this.setFilesStructure();
     if (this.condition === '다른사람') {
+      this.getResult();
       this.getAudio();
     }
     this.playAudio('4-2.실전녹음 시작');
@@ -544,7 +547,7 @@ export default {
       this.isReceiving = true;
       // const str = `${name}_${birth}`;
       try {
-        const url = 'https://api.l2-learning.site/upload/files';
+        const url = 'https://api.l2-learning.site/upload/files?_limit=980';
         const response = await axios.get(url);
         while (this.files.length !== 10) {
           this.files = this.getFiles(response.data);
@@ -557,6 +560,30 @@ export default {
       }
     },
 
+    async getResult() {
+      this.isReceiving = true;
+      try {
+        const url = 'https://api.l2-learning.site/results';
+        const response = await axios.get(url);
+        this.results = response.data;
+      } catch (err) {
+        console.log(err);
+      } finally {
+        this.isReceiving = false;
+      }
+    },
+
+    checkSex(name, sex) {
+      for (let i = 0; i < this.results.length; i += 1) {
+        if (this.results[i].participantID === name
+        && this.results[i].participantSex === sex) {
+          console.log('성공');
+          return true;
+        }
+      }
+      return false;
+    },
+
     getFiles(data) {
       let j = 0;
       let str = '';
@@ -566,8 +593,11 @@ export default {
         while (str === '') {
           j = Math.floor(Math.random() * data.length);
           if (this.username !== this.getNameString(data[j].name)
-          && this.userbirth !== this.getBirthString(data[j].name)) {
+          && this.userbirth !== this.getBirthString(data[j].name)
+          && this.checkSex(this.getNameString(data[j].name), this.sex)) {
             str = `${this.getNameString(data[j].name)}_${this.getBirthString(data[j].name)}`;
+            this.result = { whos: str };
+            this.updateFields(this.result);
           }
         }
       }
